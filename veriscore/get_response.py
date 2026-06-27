@@ -18,15 +18,22 @@ class GetResponse():
 
         # invariant variables
         self.tokenizer = tiktoken.encoding_for_model("gpt-4")
-        # model keys
-        if "gpt" in model_name:
-            self.key = os.getenv("OPENAI_API_KEY_PERSONAL")
-            self.client = OpenAI(api_key=self.key)
-            self.seed = 1130
-        elif "claude" in model_name:
-            self.key = os.getenv("CLAUDE_API_KEY")
-            self.client = Anthropic(api_key=self.key)
-        # cache related
+
+        # # model keys (REPLACED FOR OPENROUTER)
+        # if "gpt" in model_name:
+        #     self.key = os.getenv("OPENAI_API_KEY_PERSONAL")
+        #     self.client = OpenAI(api_key=self.key)
+        #     self.seed = 1130
+        # elif "claude" in model_name:
+        #     self.key = os.getenv("CLAUDE_API_KEY")
+        #     self.client = Anthropic(api_key=self.key)
+        self.client = OpenAI(
+            base_url="https://openrouter.ai/api/v1",
+            api_key=os.getenv("OPENROUTER_API_KEY")
+        )
+        self.seed = 1130 
+
+      # cache related
         self.cache_dict = self.load_cache()
         self.add_n = 0
         self.save_interval = 1
@@ -44,40 +51,65 @@ class GetResponse():
         cache_key = prompt_text.strip()
         if cache_key in self.cache_dict:
             return self.cache_dict[cache_key], 0, 0
-
-        # Example message: "You are a helpful assistant who can extract verifiable atomic claims from a piece of text."
-        if "gpt" in self.model_name:
-            message = [{"role": "system", "content": system_message},
-                       {"role": "user", "content": prompt_text}]
+        
+        ## NEW: Unified API Execution
+        try:
             response = self.client.chat.completions.create(
                 model=self.model_name,
-                messages=message,
-                max_tokens=self.max_tokens,
-                temperature=self.temperature,
-                seed=self.seed,
+                messages=[
+                    {"role": "system", "content": system_message},
+                    {"role": "user", "content": prompt_text}
+                ]
             )
-            response_content = response.choices[0].message.content.strip()
-        elif "claude" in self.model_name:
-            response = self.client.messages.create(
-                model=self.model_name,
-                messages=[{"role": "user", "content": prompt_text}],
-                temperature=self.temperature,
-                max_tokens=self.max_tokens
-            )
-            response_content = response.content[0].text.strip()
+            response_content = response.choices[0].message.content
+        except Exception as e:
+            # Add this to see exactly what OpenRouter is saying
+            import traceback
+            traceback.print_exc() 
+            print(f"DEBUG: Model name used: {self.model_name}")
+            return "Error", 0, 0
+
+
+        # Example message: "You are a helpful assistant who can extract verifiable atomic claims from a piece of text."
+        # if "gpt" in self.model_name:
+        #     message = [{"role": "system", "content": system_message},
+        #                {"role": "user", "content": prompt_text}]
+        #     response = self.client.chat.completions.create(
+        #         model=self.model_name,
+        #         messages=message,
+        #         max_tokens=self.max_tokens,
+        #         temperature=self.temperature,
+        #         seed=self.seed,
+        #     )
+        #     response_content = response.choices[0].message.content.strip()
+        # elif "claude" in self.model_name:
+        #     response = self.client.messages.create(
+        #         model=self.model_name,
+        #         messages=[{"role": "user", "content": prompt_text}],
+        #         temperature=self.temperature,
+        #         max_tokens=self.max_tokens
+        #     )
+        #     response_content = response.content[0].text.strip()
 
         # update cache
         self.cache_dict[cache_key] = response_content.strip()
         self.add_n += 1
 
-        # save cache every save_interval times
-        if self.add_n % self.save_interval == 0:
-            self.save_cache()
-        if self.add_n % self.print_interval == 0:
-            print(f"Saving # {self.add_n} cache to {self.cache_file}...")
+        # # save cache every save_interval times
+        # if self.add_n % self.save_interval == 0:
+        #     self.save_cache()
+        # if self.add_n % self.print_interval == 0:
+        #     print(f"Saving # {self.add_n} cache to {self.cache_file}...")
 
         response_tokens = len(self.tokenizer.encode(response_content))
+
+        
+        # self.cache_dict[cache_key] = response_content.strip()
+
+
         return response_content, prompt_tokens, response_tokens
+    
+
 
     # Returns the number of tokens in a text string.
     def tok_count(self, text: str) -> int:

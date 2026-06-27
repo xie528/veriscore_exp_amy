@@ -1,0 +1,45 @@
+.
+├── LICENSE
+├── README.md
+├── data
+│   ├── cache
+│   │   ├── meta-llama
+│   │   │   └── llama-3.3-70b-instruct:free
+│   │   └── openrouter
+│   │       └── free
+│   ├── claims_tiny_test.jsonl
+│   ├── data_sample.jsonl
+│   ├── deceptive_sample.jsonl
+│   ├── demos
+│   │   └── few_shot_examples.jsonl
+│   ├── evidence_tiny_test.jsonl
+│   ├── model_output
+│   │   └── verification_tiny_test_2.jsonl
+│   └── tiny_test.jsonl
+├── prompt
+│   ├── extraction_alpaca_template.txt
+│   ├── extraction_non_qa_template.txt
+│   ├── extraction_qa_template.txt
+│   ├── non_qa_template.txt
+│   ├── qa_template.txt
+│   ├── verification_alpaca_template.txt
+│   ├── verification_instruction_binary.txt
+│   ├── verification_instruction_binary_no_demo.txt
+│   ├── verification_instruction_claude_binary.txt
+│   ├── verification_instruction_claude_trinary.txt
+│   └── verification_instruction_trinary.txt
+├── repo_structure.txt
+├── setup.py
+└── veriscore
+    ├── __init__.py
+    ├── claim_extractor.py
+    ├── claim_verifier.py
+    ├── extract_claims.py
+    ├── get_response.py
+    ├── retrieve_evidence.py
+    ├── search_API.py
+    ├── utils.py
+    ├── verify_claims.py
+    └── veriscore.py
+
+11 directories, 32 files
