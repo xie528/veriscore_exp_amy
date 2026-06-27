@@ -1,0 +1,11 @@
+# Ignore System Files
+.DS_Store
+
+# Ignore Python Compiled Files
+__pycache__/
+*.pyc
+
+# Ignore the actual cache files and model output
+data/cache/
+data/model_output/
+data/evidence_*.jsonl
